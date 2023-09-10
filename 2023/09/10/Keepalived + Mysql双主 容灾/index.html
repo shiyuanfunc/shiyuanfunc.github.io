@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  
+  
+  <title>
+    Keepalived + Mysql双主-容灾配置 |
+    
+    SHI YUAN
+  </title>
+  <!-- Icon -->
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+    
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<script src="/js/pace.min.js"></script>
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <main class="content">
+    <section class="outer">
+  <article id="post-Keepalived + Mysql双主 容灾" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+      
+  
+  <h1 class="article-title" itemprop="name">
+    Keepalived + Mysql双主-容灾配置
+  </h1>
+  
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/09/10/Keepalived%20+%20Mysql%E5%8F%8C%E4%B8%BB%20%E5%AE%B9%E7%81%BE/" class="article-date">
+  <time datetime="2023-09-10T07:12:38.000Z" itemprop="datePublished">2023-09-10</time>
+</a>
+      
+    </div>
+    
+
+    
+    
+    
+
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+      
+        <p>1、利用keepalived实现mysql灾备自动切换</p>
+<span id="more"></span>
+
+<ul>
+<li><p>mysql的灾备应使用双主结构，主从结构对灾备有一定要求。从节点不能直接升级为主节点，需要确认同步完全、切换配置升级为主。双主结构便可直接漂移ip即可。</p>
+</li>
+<li><p>Mysql双主搭建流程不再本文描述范围</p>
+</li>
+<li><ul>
+<li>基于Docker搭建Mysql双主结构 <a target="_blank" rel="noopener" href="https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n">https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n</a></li>
+</ul>
+</li>
+</ul>
+<p>2、推荐一台mysql机器搭配一个keepalived防止 keepalived服务挂掉。</p>
+<p>本文由于是在单机下部署测试，故使用了一个keepalived服务</p>
+<p>1、keepalived配置文件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"> <span class="string">!</span> <span class="string">Configuration</span> <span class="string">File</span> <span class="string">for</span> <span class="string">keepalived</span></span><br><span class="line"></span><br><span class="line"><span class="string">global_defs</span> &#123;</span><br><span class="line">   <span class="string">router_id</span> <span class="string">dbmaster</span> <span class="string">//</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定一个keepalived服务实例</span></span><br><span class="line"><span class="string">vrrp_instance</span> <span class="string">VI_1</span> &#123;</span><br><span class="line">    <span class="comment"># 如果多个keepalived实例此处可设置为BACKUP</span></span><br><span class="line">    <span class="string">state</span> <span class="string">MASTER</span></span><br><span class="line">    <span class="string">interface</span> <span class="string">enp4s0f1</span></span><br><span class="line">    <span class="string">virtual_router_id</span> <span class="number">51</span></span><br><span class="line">    <span class="string">priority</span> <span class="number">100</span></span><br><span class="line">    <span class="string">nopreempt</span> <span class="comment"># 此设置代表不抢占, 也就是一台升级为主，</span></span><br><span class="line">    <span class="string">advert_int</span> <span class="number">1</span></span><br><span class="line">    <span class="string">authentication</span> &#123;</span><br><span class="line">        <span class="string">auth_type</span> <span class="string">PASS</span></span><br><span class="line">        <span class="string">auth_pass</span> <span class="number">1111</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="string">virtual_ipaddress</span> &#123;</span><br><span class="line">        <span class="comment"># 虚拟的ip 比如此处代理的是mysql,代码或程序中则使用此ip</span></span><br><span class="line">        <span class="number">192.168</span><span class="number">.31</span><span class="number">.60</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">virtual_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.60</span> <span class="number">3306</span> &#123;</span><br><span class="line">    <span class="string">delay_loop</span> <span class="number">6</span></span><br><span class="line">    <span class="string">lb_algo</span> <span class="string">rr</span></span><br><span class="line">    <span class="string">lb_kind</span> <span class="string">NAT</span></span><br><span class="line">    <span class="string">persistence_timeout</span> <span class="number">50</span></span><br><span class="line">    <span class="string">protocol</span> <span class="string">TCP</span></span><br><span class="line">    <span class="comment"># mysql 真实ip 端口</span></span><br><span class="line">    <span class="string">real_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.65</span> <span class="number">53306</span> &#123;</span><br><span class="line">        <span class="string">weight</span> <span class="number">1</span></span><br><span class="line">        <span class="string">TCP_CHECK</span> &#123;</span><br><span class="line">            <span class="string">connect_timeout</span> <span class="number">3</span></span><br><span class="line">            <span class="string">retry</span> <span class="number">3</span></span><br><span class="line">            <span class="string">connect_port</span> <span class="number">53306</span></span><br><span class="line">            <span class="string">delay_before_retry</span> <span class="number">3</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment"># mysql 真实ip 端口</span></span><br><span class="line">    <span class="string">real_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.65</span> <span class="number">53406</span> &#123;</span><br><span class="line">        <span class="string">weight</span> <span class="number">1</span></span><br><span class="line">        <span class="string">TCP_CHECK</span> &#123;</span><br><span class="line">            <span class="string">connect_timeout</span> <span class="number">3</span></span><br><span class="line">            <span class="string">retry</span> <span class="number">3</span></span><br><span class="line">            <span class="string">connect_port</span> <span class="number">53406</span></span><br><span class="line">            <span class="string">delay_before_retry</span> <span class="number">3</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://shiyuanfunc.github.io/2023/09/10/Keepalived%20+%20Mysql%E5%8F%8C%E4%B8%BB%20%E5%AE%B9%E7%81%BE/" data-id="clmd5drv10000vofh13hbf0sv" class="article-share-link">
+        分享
+      </a>
+      
+<ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+  
+<nav class="article-nav">
+  
+  
+  <a href="/2023/09/10/%E7%AC%AC%E4%B8%80%E6%96%87%E6%A1%A3/" class="article-nav-link">
+    <strong class="article-nav-caption">后一篇</strong>
+    <div class="article-nav-title">第一个文档</div>
+  </a>
+  
+</nav>
+
+  
+
+  
+  
+  
+  
+
+</article>
+</section>
+    <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>SHI YUAN &copy; 2023</li>
+      
+        <li>
+          
+            <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+            
+        </li>
+      
+      <li>Powered by SHI YUAN </li>
+    </ul>
+    <p><ul class="list-inline">
+  
+  <li><i class="fe fe-smile-alt tooltip" data-tooltip="UV"></i> <span id="busuanzi_value_site_uv"></span></li>
+  
+  <li><i class="fe fe-bookmark tooltip" data-tooltip="PV"></i> <span id="busuanzi_value_page_pv"></span></li>
+  
+</ul></p>
+  </div>
+</footer>
+
+  </main>
+  <aside class="sidebar">
+    <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/hexo.svg" alt="SHI YUAN"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">首页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/gallery">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">About</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link nav-item-search" title="搜索">
+        <i class="fe fe-search"></i>
+        搜索
+      </a>
+    </li>
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      <div class="totop" id="totop">
+  <i class="fe fe-rocket"></i>
+</div>
+    </li>
+    <li class="nav-item">
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="fe fe-feed"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+  </aside>
+  
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/jquery.justifiedGallery.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+  });
+</script>
+
+
+
+<script src="/js/ocean.js"></script>
+
+</body>
+
+</html>

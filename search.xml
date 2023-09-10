@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>第一文档</title>
+    <title>Keepalived + Mysql双主-容灾配置</title>
+    <url>/2023/09/10/Keepalived%20+%20Mysql%E5%8F%8C%E4%B8%BB%20%E5%AE%B9%E7%81%BE/</url>
+    <content><![CDATA[<p>1、利用keepalived实现mysql灾备自动切换</p>
+<span id="more"></span>
+
+<ul>
+<li><p>mysql的灾备应使用双主结构，主从结构对灾备有一定要求。从节点不能直接升级为主节点，需要确认同步完全、切换配置升级为主。双主结构便可直接漂移ip即可。</p>
+</li>
+<li><p>Mysql双主搭建流程不再本文描述范围</p>
+</li>
+<li><ul>
+<li>基于Docker搭建Mysql双主结构 <a href="https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n">https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n</a></li>
+</ul>
+</li>
+</ul>
+<p>2、推荐一台mysql机器搭配一个keepalived防止 keepalived服务挂掉。</p>
+<p>本文由于是在单机下部署测试，故使用了一个keepalived服务</p>
+<p>1、keepalived配置文件</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"> <span class="string">!</span> <span class="string">Configuration</span> <span class="string">File</span> <span class="string">for</span> <span class="string">keepalived</span></span><br><span class="line"></span><br><span class="line"><span class="string">global_defs</span> &#123;</span><br><span class="line">   <span class="string">router_id</span> <span class="string">dbmaster</span> <span class="string">//</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定一个keepalived服务实例</span></span><br><span class="line"><span class="string">vrrp_instance</span> <span class="string">VI_1</span> &#123;</span><br><span class="line">    <span class="comment"># 如果多个keepalived实例此处可设置为BACKUP</span></span><br><span class="line">    <span class="string">state</span> <span class="string">MASTER</span></span><br><span class="line">    <span class="string">interface</span> <span class="string">enp4s0f1</span></span><br><span class="line">    <span class="string">virtual_router_id</span> <span class="number">51</span></span><br><span class="line">    <span class="string">priority</span> <span class="number">100</span></span><br><span class="line">    <span class="string">nopreempt</span> <span class="comment"># 此设置代表不抢占, 也就是一台升级为主，</span></span><br><span class="line">    <span class="string">advert_int</span> <span class="number">1</span></span><br><span class="line">    <span class="string">authentication</span> &#123;</span><br><span class="line">        <span class="string">auth_type</span> <span class="string">PASS</span></span><br><span class="line">        <span class="string">auth_pass</span> <span class="number">1111</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="string">virtual_ipaddress</span> &#123;</span><br><span class="line">        <span class="comment"># 虚拟的ip 比如此处代理的是mysql,代码或程序中则使用此ip</span></span><br><span class="line">        <span class="number">192.168</span><span class="number">.31</span><span class="number">.60</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="string">virtual_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.60</span> <span class="number">3306</span> &#123;</span><br><span class="line">    <span class="string">delay_loop</span> <span class="number">6</span></span><br><span class="line">    <span class="string">lb_algo</span> <span class="string">rr</span></span><br><span class="line">    <span class="string">lb_kind</span> <span class="string">NAT</span></span><br><span class="line">    <span class="string">persistence_timeout</span> <span class="number">50</span></span><br><span class="line">    <span class="string">protocol</span> <span class="string">TCP</span></span><br><span class="line">    <span class="comment"># mysql 真实ip 端口</span></span><br><span class="line">    <span class="string">real_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.65</span> <span class="number">53306</span> &#123;</span><br><span class="line">        <span class="string">weight</span> <span class="number">1</span></span><br><span class="line">        <span class="string">TCP_CHECK</span> &#123;</span><br><span class="line">            <span class="string">connect_timeout</span> <span class="number">3</span></span><br><span class="line">            <span class="string">retry</span> <span class="number">3</span></span><br><span class="line">            <span class="string">connect_port</span> <span class="number">53306</span></span><br><span class="line">            <span class="string">delay_before_retry</span> <span class="number">3</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment"># mysql 真实ip 端口</span></span><br><span class="line">    <span class="string">real_server</span> <span class="number">192.168</span><span class="number">.31</span><span class="number">.65</span> <span class="number">53406</span> &#123;</span><br><span class="line">        <span class="string">weight</span> <span class="number">1</span></span><br><span class="line">        <span class="string">TCP_CHECK</span> &#123;</span><br><span class="line">            <span class="string">connect_timeout</span> <span class="number">3</span></span><br><span class="line">            <span class="string">retry</span> <span class="number">3</span></span><br><span class="line">            <span class="string">connect_port</span> <span class="number">53406</span></span><br><span class="line">            <span class="string">delay_before_retry</span> <span class="number">3</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <tags>
+        <tag>博客</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>第一个文档</title>
     <url>/2023/09/10/%E7%AC%AC%E4%B8%80%E6%96%87%E6%A1%A3/</url>
     <content><![CDATA[<p>你好呀，这是第一次写作，用来测试内容</p>
 ]]></content>
+      <tags>
+        <tag>博客</tag>
+      </tags>
   </entry>
 </search>
