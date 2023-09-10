@@ -7,11 +7,8 @@
 <span id="more"></span>
 
 <ul>
-<li><p>mysql的灾备应使用双主结构，主从结构对灾备有一定要求。从节点不能直接升级为主节点，需要确认同步完全、切换配置升级为主。双主结构便可直接漂移ip即可。</p>
-</li>
-<li><p>Mysql双主搭建流程不再本文描述范围</p>
-</li>
-<li><ul>
+<li>mysql的灾备应使用双主结构，主从结构对灾备有一定要求。从节点不能直接升级为主节点，需要确认同步完全、切换配置升级为主。双主结构便可直接漂移ip即可。</li>
+<li>Mysql双主搭建流程不再本文描述范围<ul>
 <li>基于Docker搭建Mysql双主结构 <a href="https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n">https://www.yuque.com/shiyuan-kwttd/bmk7pt/yirz6n</a></li>
 </ul>
 </li>
