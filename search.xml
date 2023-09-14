@@ -26,8 +26,19 @@
     <url>/2023/09/10/%E7%AC%AC%E4%B8%80%E6%96%87%E6%A1%A3/</url>
     <content><![CDATA[<p>你好呀，这是第一次写作，用来测试内容</p>
 <ul>
-<li>拖拽图片测试<ul>
+<li><p>拖拽图片测试</p>
+<ul>
 <li><img src="/2023/09/10/%E7%AC%AC%E4%B8%80%E6%96%87%E6%A1%A3/%E5%95%86%E5%93%81%E5%9B%BE%E7%89%87.jpeg" class="" title="商品图片"></li>
+</ul>
+</li>
+<li><p>拖拽视频测试</p>
+<ul>
+<li><video src="../../../../../../Desktop/视频.mp4"></video></li>
+</ul>
+</li>
+<li><p>换行距离测试</p>
+<ul>
+<li>1313<br>1323</li>
 </ul>
 </li>
 </ul>
