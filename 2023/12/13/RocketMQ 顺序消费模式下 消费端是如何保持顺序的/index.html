@@ -70,22 +70,20 @@
       
         <p>前置: 拉取消息的流程，并发和顺序都是一样的</p>
 <p>1、将拉取到的消息（默认32条,单次拉取的条数）放入到 MessageQueue 的对应的ProcessQueue中。</p>
-<span id="more"></span>
+<img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701440500667-bc1fc49a-ab71-4a14-9015-f39ce7ee03fa-20231213213351985.png" class="" title="img">
 
-
-
-<p>2、放入消息时并修改当前ProcessQueue队列是否正在消费,刚启动时为false。注意如果当前队列放置消息时不存在消费，此时dispatchToConsume为true.</p>
-<p>3、当dispatchToConsume为true时，创建一个消费消息的任务 ConsumeRequest，因为此时32条消息已经均放入该MessageQueue的Procesueue中，只需要起一个线程一直消费就行。</p>
+<p>2、放入消息时并修改当前ProcessQueue队列是否正在消费,刚启动时为false。注意如果当前队列放置消息时不存在消费，此时dispatchToConsume为true</p>
+<p>3、当dispatchToConsume为true时，创建一个消费消息的任务 ConsumeRequest，因为此时32条消息已经均放入该MessageQueue的Procesueue中，只需要起一个线程一直消费就行。<img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701440855038-ec4ae3b8-5165-42b2-b3d0-d9d0ff14985d-20231213213351877.png" class="" title="img"></p>
 <p>4、当前任务一直循环处理ProcessQueue中的消息（for循环）</p>
+<img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701441125526-ba671f7f-38f9-4c1d-888d-859d73716605-20231213213351931.png" class="" title="img">
 
-
-
+<img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701441150976-f3c42f17-75dc-4790-bc09-f2306df1cb7d-20231213213352019.png" class="" title="img">
 
 <p>5、在上报消息处理结果</p>
 <ul>
 <li>如果消息成功处理，则continueConsume仍为true，此任务继续循环。</li>
 <li>如果消息处理失败并且当前消息没有到最大循环次数，则continueConsume设置为false跳出步骤4的循环并重新提交一个ConsumeRequest任务，延迟一秒触发。待当前任务到达时间后，继续步骤4循环</li>
-<li></li>
+<li><img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701441198700-61713295-37ef-4228-bac3-cb7153001605-20231213213352010.png" class="" title="img"></li>
 </ul>
 <h4 id="扩展："><a href="#扩展：" class="headerlink" title="扩展："></a>扩展：</h4><ul>
 <li><p>并发消费模式下为什么是并发的？是因为一个消息生成一个ConsumeRequest任务并提交到线程池</p>
@@ -94,7 +92,7 @@
 <li>单次消息拉取会生成32个任务进行并发消费</li>
 </ul>
 </li>
-<li></li>
+<li><img src="/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/1701441807939-7a7bed3b-2391-47c2-8970-449cfc83fb5c-20231213213351963.png" class="" title="img"></li>
 </ul>
 <h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><ul>
 <li><p>并发消费和顺序模式下的消息拉取机制是一样的</p>
@@ -105,7 +103,7 @@
 <li>默认一次拉取32条，会有32个任务</li>
 </ul>
 </li>
-<li><p>顺序模式下 同一个队列始终保持最多一个任务在运行</p>
+<li><p>顺序模式下 同一个队列始终最多一个任务在运行</p>
 </li>
 <li><ul>
 <li>synchronized (messageQueue) 对MessageQueue加锁当前队列保证同一队列串行。</li>
