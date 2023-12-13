@@ -37,9 +37,11 @@
   </entry>
   <entry>
     <title>RocketMQ 顺序消费模式下 消费端是如何保持顺序的</title>
-    <url>/2023/12/13/RocketMQ%20%E5%B9%B6%E5%8F%91%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%E6%B6%88%E8%B4%B9%E4%BD%8D%E7%82%B9%E4%B8%8A%E6%8A%A5/</url>
+    <url>/2023/12/13/RocketMQ%20%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F%E4%B8%8B%20%E6%B6%88%E8%B4%B9%E7%AB%AF%E6%98%AF%E5%A6%82%E4%BD%95%E4%BF%9D%E6%8C%81%E9%A1%BA%E5%BA%8F%E7%9A%84/</url>
     <content><![CDATA[<p>前置: 拉取消息的流程，并发和顺序都是一样的</p>
 <p>1、将拉取到的消息（默认32条,单次拉取的条数）放入到 MessageQueue 的对应的ProcessQueue中。</p>
+<span id="more"></span>
+
 
 
 <p>2、放入消息时并修改当前ProcessQueue队列是否正在消费,刚启动时为false。注意如果当前队列放置消息时不存在消费，此时dispatchToConsume为true.</p>
